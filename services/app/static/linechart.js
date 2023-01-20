@@ -16,6 +16,7 @@ function transition(path) {
 export function lineChart() {
     var symbol = "";
     var data = [];
+    var color = "steelblue";
     var margin = { top: 20, right: 40, bottom: 20, left: 40 };
     var width = 900 - margin.left - margin.right;
     var height = 200 - margin.top - margin.bottom;
@@ -40,7 +41,7 @@ export function lineChart() {
         .x(d => xScale(xValue(d)))
         .y(d => yScale(yValue(d)));
 
-    var updateData, updateSymbol, updateWidth, updateHeight;
+    var updateData, updateSymbol, updateColor, updateWidth, updateHeight;
 
     function chart(selection) {
         selection.each(function () {
@@ -102,7 +103,7 @@ export function lineChart() {
                 .attr("text-anchor", "middle"); 
 
             lines.selectAll(".line")
-                .data([{timeseries: data}])
+                .data([{symbol: symbol, timeseries: data}], d=>d.symbol)
                 .join(
                     enter => enter
                         .append("g")
@@ -110,20 +111,46 @@ export function lineChart() {
                         .append("path")
                         .attr("d", d => line(d.timeseries))
                         .style('fill', 'none')
-                        .style('stroke', "steelblue")
+                        .style('stroke', color)
                         .style('stroke-width', 2)
                         .call(transition),
-                    update => update.select("path").attr("d", d => line(d.timeseries)),
+                    update => update.transition().duration(1500).select("path").attr("d", d => line(d.timeseries)),
                     exit => {
                         exit.transition().duration(500).select("path").style("stroke", "white")
                         exit.transition().delay(500).remove();
                     }
                 )
             
-            updateData = function(value) {
+            updateData = function() {
+                yExtent = d3.extent(data, d=>yValue(d))
+                yScale.range([height, 0]).domain(yExtent);
+                yAxisG.transition().duration(1500).call(yAxis);
+
+                lines.selectAll(".line")
+                .data([{symbol: symbol, timeseries: data}], d=>d.symbol)
+                .join(
+                    enter => enter
+                        .append("g")
+                        .attr("class", "line")
+                        .append("path")
+                        .attr("d", d => line(d.timeseries))
+                        .style('fill', 'none')
+                        .style('stroke', color)
+                        .style('stroke-width', 2)
+                        .call(transition),
+                    update => update.transition().duration(1500).select("path").attr("d", d => line(d.timeseries)).style('stroke', color),
+                    exit => {
+                        exit.transition().duration(500).select("path").style("stroke", "white")
+                        exit.transition().delay(500).remove();
+                    }
+                )
             };
 
-            updateSymbol = function(value) {
+            updateSymbol = function() {
+                headline.text(symbol);
+            };
+
+            updateColor = function() {
             };
 
             updateWidth = function() {
@@ -155,10 +182,17 @@ export function lineChart() {
     	return chart;
 	};
 
+    chart.color = function(value) {
+    	if (!arguments.length) return color;
+    	color = value;
+    	if (typeof updateColor === 'function') updateColor();
+    	return chart;
+	};
+
     chart.data = function(value) {
     	if (!arguments.length) return data;
         data = value
-    	if (typeof updateData === 'function') updateData(value);
+    	if (typeof updateData === 'function') updateData();
     	return chart;
 	};
     

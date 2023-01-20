@@ -15,5 +15,24 @@ d3.select("#ticker").on("change", function () {
         var chart = lineChart().height(250).width(width).symbol(d.symbol).data(d.data)
 
         chartDiv.call(chart);
+        
+        setInterval(function () {
+            var colors = ["blue","red","green","black"]
+            chart
+            .data(
+                d.data.map(function (d) {
+                    return {
+                        "Date": d.Date,
+                        "Close": d.Close * Math.random()
+                    }
+                })
+            )
+            .symbol(
+                d.symbol.repeat(Math.floor(Math.random() * 5) + 1)
+            )
+            .color(
+                colors[Math.floor(Math.random() * colors.length)]
+            )
+        }, 3000)
     })
 })
