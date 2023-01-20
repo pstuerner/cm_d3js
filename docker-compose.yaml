@@ -1,0 +1,20 @@
+version: "3"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.app
+    container_name: "app"
+    restart: always
+    ports:
+      - "8000:8000"
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: "api"
+    restart: always
+    ports:
+      - "8001:8001"
